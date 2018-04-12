@@ -5,28 +5,13 @@ output:
   flexdashboard::flex_dashboard:
     orientation: columns
     vertical_layout: fill
-    source_code: https://github.com/microsud/microbiomeutilities-shiny
+    source_code: https://github.com/microsud/microbiomeutilities
     theme: lumen
 ---
 
+
 ```{r setup, include=FALSE}
 
-.packages = c("picante", "data.table", "RColorBrewer", 
-              "shinythemes", "DT", "shiny", "reshape", 
-              "ggpubr", "tibble", "pheatmap", "tabplot")
-
-# Install CRAN packages (if not already installed)
-.inst <- .packages %in% installed.packages()
-if(length(.packages[!.inst]) > 0) install.packages(.packages[!.inst])
-
-if (!("microbiomeutilities"  %in% installed.packages())) {
-devtools::install_github("microsud/microbiomeutilities")
-}
-
-if (!("microbiome"  %in% installed.packages())) {
-install_github("microbiome/microbiome")
-
-}
 
 library(flexdashboard)
 library(microbiome)
@@ -39,8 +24,6 @@ library(DT)
 library(RColorBrewer)
 library(shiny)
 library(shinythemes)
-library(metagenomeSeq)
-library(Biobase)
 library(plotly)
 library(tibble)
 options(shiny.maxRequestSize = 30*1024^2) # 30mb limit
@@ -99,7 +82,7 @@ h5('Click on load example to test this app.
    Remember this app is for pre-limanry investigation only!')
 tags$strong()
 
-h6('contact: sudarshanshetty9@gmail.com')
+h5('contact: sudarshanshetty9@gmail.com')
 tags$strong()
 
 h5('LICENSE: GNU General Public License v3.0')  
@@ -225,7 +208,7 @@ fluidPage(
     
   
 sidebarPanel(width = 3,  
-fluidRow(
+
   
 numericInput(
         "PrevalenceOTU",
@@ -239,7 +222,7 @@ numericInput(
         max = 1000)
 
 
-)),
+),
 
 output$OTUHist_1 <- renderPlot({
   
@@ -269,6 +252,8 @@ p4 <- ggplot2::qplot(rowSums(otu_table(px.hel))) + ggplot2::theme_bw() + ggplot2
 #t <- gridExtra::textGrob(paste0("Numer of OTU/Taxa after filtering: ", no_taxa) )
 
 return(gridExtra::grid.arrange(p1,p2,p3,p4, nrow= 2, ncol= 2))
+
+mainPanel(plotOutput("OTUHist_1"))
 
 
 }, width = 600, height = 600)
@@ -368,7 +353,7 @@ selectInput(
 )
 
 
-# Bubbles plot of phyla abundances across all samples
+#Prevalence plot across all samples
 output$PrevalencePlot <- renderPlot({
   # Err if null
   validate(need(expr = !is.null(pseq()), message = "Loading data..."))
@@ -396,7 +381,7 @@ fluidPage(titlePanel(""),
           width = 2,
           column = 5,
           
-          fluidRow(
+         
           ## plot variable
           h5('Please select the plotting parameters'),
           
@@ -434,7 +419,6 @@ fluidPage(titlePanel(""),
           
           
           
-          )
           ),
           
           
@@ -512,6 +496,7 @@ fluidPage(titlePanel(""),
           
           
           return(plot.composition.relAbun)
+          mainPanel(plotOutput("boxplot"))
           
           }, width = 1000, height = 600)
           ))
@@ -531,7 +516,6 @@ fluidPage(
     
   
 sidebarPanel(width = 2,  column = 4,
-fluidRow(
 
   
   ## plot variable
@@ -569,7 +553,7 @@ fluidRow(
         max = 50)
   
 
-)),
+),
 
 
 
@@ -597,6 +581,7 @@ output$boxplot <- renderPlot({
                         color = input$taxcolors)
           
           return(pn1 + ggpubr::rremove("grid"))
+          mainPanel(plotOutput("boxplot"))
 
        }, width = 1000, height = 600)))
 
@@ -616,7 +601,7 @@ fluidPage(
     
   
 sidebarPanel(width = 2,  column = 4,
-fluidRow(
+
   ## link the JS file
   tags$head(tags$script(src="script.js")),
   ## link the CSS file
@@ -652,7 +637,7 @@ fluidRow(
         max = 150)
   
 
-)),
+),
 
 
 output$HeatMap <- renderPlot({
@@ -675,7 +660,7 @@ output$HeatMap <- renderPlot({
                             transformation = input$transformation))
           
 
-       }, width = 1000, height = 800)))
+       }, width = 1000, height = 700)))
 
 
 ```
@@ -686,13 +671,11 @@ output$HeatMap <- renderPlot({
 ```{r}
 
 fluidPage(
-  titlePanel(""),
+  titlePanel("Non-Phylogenetic diversity"),
   
   sidebarLayout(
-    
-  
-sidebarPanel(width = 2,  column = 4,
-fluidRow(
+    sidebarPanel(width = 2,  column = 4,
+
   ## link the JS file
   tags$head(tags$script(src="script.js")),
   ## link the CSS file
@@ -728,7 +711,7 @@ fluidRow(
         selected = "stripchart")
 
 
-)),
+),
 
 
 output$diveplot <- renderPlot({
@@ -748,8 +731,10 @@ output$diveplot <- renderPlot({
                                       variableA = input$Sam_var3, 
                                       palette = input$divcolors) + ggpubr::rremove("grid")
               return(p)
+          
+          mainPanel(plotOutput("diveplot"))
 
-       }, width = 1000, height = 800)
+       }, width = 900, height = 600)
 
 
 ))
@@ -764,13 +749,13 @@ output$diveplot <- renderPlot({
 
 
 fluidPage(
-  titlePanel(""),
+  titlePanel("Phylogenetic diversity"),
   
   sidebarLayout(
     
   
-sidebarPanel(width = 2,  column = 4,
-fluidRow(
+sidebarPanel(width = 2,  column = 3,
+
   ## link the JS file
   tags$head(tags$script(src="script.js")),
   ## link the CSS file
@@ -799,7 +784,7 @@ fluidRow(
         selected = "stripchart")
 
 
-)),
+),
 
 
 output$diveplot <- renderPlot({
@@ -879,10 +864,12 @@ output$diveplot <- renderPlot({
     plot.pd <- "No tree provided. Phylogenetic diversity, unifrac distances cannot be calculated"
     
   }
-
+         
           return(plot.pd + ggpubr::rremove("grid"))
+          
+          mainPanel(plotOutput("diveplot"))
 
-       }, width = 1000, height = 600)))
+       }, width = 900, height = 600)))
 
 
 ```
@@ -896,7 +883,7 @@ fluidPage(
   
   sidebarLayout(
   sidebarPanel(width = 2,  column = 3,
-fluidRow(
+
   
     ## link the JS file
   tags$head(tags$script(src="script.js")),
@@ -936,7 +923,7 @@ fluidRow(
         max = 0.1)
   
 
-)),
+),
 
 output$Ordination <- renderPlot({
   av = function(x) {
@@ -985,7 +972,7 @@ output$Ordination <- renderPlot({
   return(ordiplot)
   }
   
-  mainPanel(plotOutput("Ordination"))
+  mainPanel(plotOutput("diveplot"))
   
   
 }, width = 800, height = 600)
@@ -1005,22 +992,17 @@ fluidPage(
   titlePanel(""),
   
   sidebarLayout(
-  sidebarPanel(width = 2,column = 2,
-fluidRow(
-  
- 
+  sidebarPanel(width = 2,column = 3,
+
   numericInput(
         "PrevalenceCore",
         label = "Prevalence: Number of samples OTU must be present 0.05 means 5%",0.5,
        min = 0.25, 
         max = 0.99),
   h5('Minimum detection of taxa is set 
-     at 0.0001% see x-axis for range'),
-  
-  downloadButton("savecore", "Save plot")
-  
-  
-)),
+     at 0.0001% see x-axis for range')
+
+),
 
   output$core_plots <- renderPlot({
     
@@ -1058,7 +1040,7 @@ av = function(x){
           mainPanel(plotOutput("core_plots"))
         
 
-       }, width = 800, height = 800)
+       }, width = 800, height = 600)
 
 
   ))
@@ -1111,7 +1093,7 @@ output$DiversitiesTab = DT::renderDataTable({
     extensions = 'Buttons',
     options = list(lengthChange = TRUE, 
                    dom = 'Bfrtip',
-                   buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                   buttons = c('copy', 'print'),
                    autoWidth = F,
                    pageLength = 15,
                    searchHighlight = TRUE,
@@ -1383,7 +1365,6 @@ fluidPage(titlePanel(""),
           sidebarPanel(
           width = 2,
           column = 4,
-          fluidRow(
           ## plot variable
           h5('Please type the variable of choice from mapping file'),
           p('No numeric values, only categorical'),
@@ -1405,7 +1386,6 @@ fluidPage(titlePanel(""),
           min = 0,
           max = 500,
           value = 100
-          )
           )
           ),
           
@@ -1441,6 +1421,7 @@ fluidPage(titlePanel(""),
           scales = "lin"
           )
           )
+          mainPanel(plotOutput("tableplot"))
           }, width = 1200, height = 800)
           ))
 
